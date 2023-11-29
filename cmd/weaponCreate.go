@@ -37,7 +37,7 @@ to quickly create a Cobra application.`,
 		src.Clear()
 		src.Keypad(true)                 // setup ends
 
-		top_slice := []string{"LAW", "MAW", "Missle - AT", "Missile - AA", "Indirect", "AntiInfantry"}
+		top_slice := []string{"LAW", "MAW", "Missle - AT", "Missile - AA", "Indirect", "AntiInfantry", "Quit"}
 		top_menu, top_items := create_menu(top_slice)
 		maw_slice := []string{"Pen", "HEAT", "HighExpolsive", "RateOfFire", "Range", "Close", "Back", "Save"}
 		maw_menu, maw_items := create_menu(maw_slice)
@@ -47,7 +47,7 @@ to quickly create a Cobra application.`,
 
 		active_menu.Post()
 
-		src.MovePrint(20, 0, "'q' to exit")
+		src.MovePrint(20, 0, "'^C' or 'ESC' to exit, 'ENTER' to select")
 		src.Refresh()
 
 		for {
@@ -60,14 +60,14 @@ to quickly create a Cobra application.`,
 				return
 			case KEY_DOWN:
 				if active == len(active_slice)-1 {
-					active = 0
+
 				} else {
 					active += 1
 				}
 				active_menu.Driver(REQ_DOWN)
 			case KEY_UP:
 				if active == 0 {
-					active = len(active_slice) - 1
+
 				} else {
 					active -= 1
 				}
@@ -78,17 +78,26 @@ to quickly create a Cobra application.`,
 				if active_menu == top_menu {
 					switch active_slice[active] {
 					case "LAW":
-						src.Print("LAW")
-					case "MAW":
-						src.Print("MAW")
 						active_menu = maw_menu
+						active_slice = maw_slice
+					case "MAW":
+						active_menu = maw_menu
+						active_slice = maw_slice
+					case "Quit":
+						return
 					}
 				} else if active_menu == maw_menu {
-					src.Print("Inside maw") //create fillable forms
+					switch active_slice[active] {
+					case "Back":
+						active_menu = top_menu
+						active_slice = top_slice
+
+					}
 				}
+				src.Refresh()
 				active_menu.Post()
 				//src.Print(top_slice[active])
-				src.Refresh()
+
 				// switch active_menu.Current() {
 		 	// 	case "MAW":
 		 	// 		active_menu = maw_menu

@@ -5,14 +5,10 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	//"fmt"
-	"log"
-	. "github.com/rthornton128/goncurses"
+	"fmt"
+	//"log"
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
-)
-const (
-	HEIGHT = 10
-	WIDTH  = 30
 )
 // weaponCreateCmd represents the weaponCreate command
 var weaponCreateCmd = &cobra.Command{
@@ -25,90 +21,62 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var active int // track selected
-		src, err := Init()               // setup starts
-		if err != nil {
-			log.Fatal("init:", err)
-		}
-		defer End()
-		Raw(true)
-		Echo(false)
-		Cursor(0)
-		src.Clear()
-		src.Keypad(true)                 // setup ends
+		app := tview.NewApplication()
+		page_slice := []string{"Anti Tank Weapon", "Missile"} //, "Indirect Fire"}
+		pages := tview.NewPages()
 
-		top_slice := []string{"LAW", "MAW", "Missle - AT", "Missile - AA", "Indirect", "AntiInfantry", "Quit"}
-		top_menu, top_items := create_menu(top_slice)
-		maw_slice := []string{"Pen", "HEAT", "HighExpolsive", "RateOfFire", "Range", "Close", "Back", "Save"}
-		maw_menu, maw_items := create_menu(maw_slice)
-		// maw_items := make([]*MenuItem, len(maw_slice))
-		var active_menu *Menu = top_menu
-		var active_slice []string = top_slice
+		form_slice := make([]*tview.Form, 2)
+		form_slice[0] = tview.NewForm().
+				AddDropDown("AntiTankWeapon", []string{"Mr.", "Ms.", "Mrs.", "Dr.", "Prof."}, 0, nil).
+				AddInputField("First name", "", 20, nil, nil).
+				AddInputField("Last name", "", 20, nil, nil).
+				AddTextArea("Address", "", 40, 0, 0, nil).
+				AddTextView("Notes", "This is just a demo.\nYou can enter whatever you wish.", 40, 2, true, false).
+				AddCheckbox("Age 18+", false, nil).
+				AddPasswordField("Password", "", 10, '*', nil).
+				AddButton("Save", nil).
+				AddButton("Quit", func() {app.Stop()})
+		form_slice[0].SetBorder(true).SetTitle(" Anti Tank Weapon ")
 
-		active_menu.Post()
+		form_slice[1] = tview.NewForm().
+				AddTextArea("Name", "", 40, 1, 40, nil).
+				AddDropDown("Type", []string{"AT", "AA"}, 0, nil).
+				AddInputField("Penetration", "", 3, nil, nil).
+				AddDropDown("Generation", []string{"1", "2", "3"}, 0, nil).
+				AddCheckbox("Top Attack", false, nil).
+				AddCheckbox("Ammo Limited", false, nil).
+				AddButton("Save", nil).
+				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
+				AddButton("Quit", func() {app.Stop()})
+		form_slice[1].SetBorder(true).SetTitle(" Missile ")
 
-		src.MovePrint(20, 0, "'^C' or 'ESC' to exit, 'ENTER' to select")
-		src.Refresh()
-
-		for {
-			defer active_menu.Free()
-			Update()
-			ch := src.GetChar()
-
-			switch Key(ch) {
-			case KEY_ESC, 3:
-				return
-			case KEY_DOWN:
-				if active == len(active_slice)-1 {
-
+		pages.AddPage(fmt.Sprintf("Weapon Selection"),
+			tview.NewModal().
+			SetText("Weapon Creation:\nSelect Weapon Type").
+			AddButtons([]string{"Anti Tank Weapon", "Missile", "Quit"}).
+			SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+				if buttonLabel == "Quit" {
+					app.Stop()
 				} else {
-					active += 1
+					pages.SwitchToPage(buttonLabel)
 				}
-				active_menu.Driver(REQ_DOWN)
-			case KEY_UP:
-				if active == 0 {
-
-				} else {
-					active -= 1
-				}
-				active_menu.Driver(REQ_UP)
-			case KEY_RETURN:
-				Flash()
-				src.Clear()
-				if active_menu == top_menu {
-					switch active_slice[active] {
-					case "LAW":
-						active_menu = maw_menu
-						active_slice = maw_slice
-					case "MAW":
-						active_menu = maw_menu
-						active_slice = maw_slice
-					case "Quit":
-						return
-					}
-				} else if active_menu == maw_menu {
-					switch active_slice[active] {
-					case "Back":
-						active_menu = top_menu
-						active_slice = top_slice
-
-					}
-				}
-				src.Refresh()
-				active_menu.Post()
-				//src.Print(top_slice[active])
-
-				// switch active_menu.Current() {
-		 	// 	case "MAW":
-		 	// 		active_menu = maw_menu
-				// }
-			// default:
-			// 	src.Print(ch)
-			}
-
+			}),
+			true, true) //resize bool, visible bool
+		for page := 0; page < len(page_slice); page++ {
+			pages.AddPage(fmt.Sprintf(page_slice[page]), form_slice[page], true, false)
 		}
-		log.Print(maw_items)
-		log.Print(top_items)
+		// pages.AddPage(fmt.Sprintf("AntiTankWeapon"),
+		// 	form_slice[0],
+		// 	true, false)
+  //
+  //
+		// pages.AddPage(fmt.Sprintf("Missile"),
+		// 	form_slice[1],
+		// 	true, false)
+
+		if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
+			panic(err)
+		}
 
 	},
 }
@@ -127,16 +95,3 @@ func init() {
 	// weaponCreateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func create_menu(slice_items []string) (*Menu, []*MenuItem) {
-	items := make([]*MenuItem, len(slice_items))
-	for i, val := range slice_items {
-		items[i], _ = NewItem(val, "")
-		//defer items[i].Free()
-	}
-	menu, err := NewMenu(items)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//defer menu.Free()
-	return menu, items
-}

@@ -22,19 +22,19 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		app := tview.NewApplication()
-		page_slice := []string{"Anti Tank Weapon", "Missile"} //, "Indirect Fire"}
+		page_slice := []string{"Anti Tank Weapon", "Missile", "Indirect Fire"}
 		pages := tview.NewPages()
 
-		form_slice := make([]*tview.Form, 2)
+		form_slice := make([]*tview.Form, 3)
 		form_slice[0] = tview.NewForm().
-				AddDropDown("AntiTankWeapon", []string{"Mr.", "Ms.", "Mrs.", "Dr.", "Prof."}, 0, nil).
-				AddInputField("First name", "", 20, nil, nil).
-				AddInputField("Last name", "", 20, nil, nil).
-				AddTextArea("Address", "", 40, 0, 0, nil).
-				AddTextView("Notes", "This is just a demo.\nYou can enter whatever you wish.", 40, 2, true, false).
-				AddCheckbox("Age 18+", false, nil).
-				AddPasswordField("Password", "", 10, '*', nil).
+				AddTextArea("Name", "", 40, 1, 40, nil).
+				AddInputField("Penetration", "", 3, nil, nil).
+				AddDropDown("Munition Type", []string{"HEAT", "High Explosive"}, 0, nil).
+				AddInputField("Rate of Fire", "", 3, nil, nil).
+				AddInputField("Range", "", 3, nil, nil).
+				AddCheckbox("Close Range", false, nil).
 				AddButton("Save", nil).
+				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
 		form_slice[0].SetBorder(true).SetTitle(" Anti Tank Weapon ")
 
@@ -50,10 +50,29 @@ to quickly create a Cobra application.`,
 				AddButton("Quit", func() {app.Stop()})
 		form_slice[1].SetBorder(true).SetTitle(" Missile ")
 
+		form_slice[2] = tview.NewForm().
+				AddTextArea("Name", "", 40, 1, 40, nil).
+				AddInputField("Range Max", "", 3, nil, nil).
+				AddInputField("Range Min", "", 3, nil, nil).
+				AddCheckbox("High Explosive Munitions", false, nil).
+				AddCheckbox("Smoke Munitions", false, nil).
+				AddCheckbox("Chemical Munitions", false, nil).
+				AddCheckbox("ICM Munitions", false, nil).
+				AddCheckbox("Laser-guided Munitions", false, nil).
+				AddCheckbox("GPS-guided Munitions", false, nil).
+				AddCheckbox("Artillery-delivered Mine Munitions", false, nil).
+				AddButton("Save", nil).
+				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
+				AddButton("Quit", func() {app.Stop()})
+		form_slice[2].SetBorder(true).SetTitle(" Indirect Fire ")
+
+
+		plus_quit := []string{"Quit"}
+		types := append(page_slice, plus_quit...)
 		pages.AddPage(fmt.Sprintf("Weapon Selection"),
 			tview.NewModal().
 			SetText("Weapon Creation:\nSelect Weapon Type").
-			AddButtons([]string{"Anti Tank Weapon", "Missile", "Quit"}).
+			AddButtons(types).
 			SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 				if buttonLabel == "Quit" {
 					app.Stop()

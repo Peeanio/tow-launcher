@@ -45,7 +45,10 @@ to quickly create a Cobra application.`,
 				AddDropDown("Generation", []string{"1", "2", "3"}, 0, nil).
 				AddCheckbox("Top Attack", false, nil).
 				AddCheckbox("Ammo Limited", false, nil).
-				AddButton("Save", nil).
+				AddButton("Save", func() {
+					entry := form_slice[1].GetFormItemByLabel("Name").(*tview.TextArea).GetText()
+					app.Stop()
+					fmt.Println(entry)}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
 		form_slice[1].SetBorder(true).SetTitle(" Missile ")
@@ -113,4 +116,3 @@ func init() {
 	// is called directly, e.g.:
 	// weaponCreateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-

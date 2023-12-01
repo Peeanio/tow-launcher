@@ -84,6 +84,7 @@ func main() {
 			Close: true,
 		},
 		MAW: Missile {
+			Name: "NLAW"
 			Pen: 14,
 			RateOfFire: 1,
 			Generation: 3,

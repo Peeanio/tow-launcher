@@ -6,13 +6,17 @@ package cmd
 
 import (
 	"fmt"
+	"encoding/json"
+	"strconv"
 	//"log"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
+
+var border bool
 // weaponCreateCmd represents the weaponCreate command
 var weaponCreateCmd = &cobra.Command{
-	Use:   "weaponCreate",
+	Use:   "create",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,22 +40,28 @@ to quickly create a Cobra application.`,
 				AddButton("Save", nil).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
-		form_slice[0].SetBorder(true).SetTitle(" Anti Tank Weapon ")
+		if border != true{
+			form_slice[0].SetBorder(true).SetTitle(" Anti Tank Weapon ")
+		}
 
 		form_slice[1] = tview.NewForm().
 				AddTextArea("Name", "", 40, 1, 40, nil).
-				AddDropDown("Type", []string{"AT", "AA"}, 0, nil).
+				AddInputField("Rate of Fire", "", 3, nil, nil).
 				AddInputField("Penetration", "", 3, nil, nil).
 				AddDropDown("Generation", []string{"1", "2", "3"}, 0, nil).
 				AddCheckbox("Top Attack", false, nil).
 				AddCheckbox("Ammo Limited", false, nil).
+				AddDropDown("Aspect", []string{"N/A", "Rear", "All"}, 0, nil).
 				AddButton("Save", func() {
-					entry := form_slice[1].GetFormItemByLabel("Name").(*tview.TextArea).GetText()
-					app.Stop()
-					fmt.Println(entry)}).
+					missile := make_missile(form_slice[1], app)
+					str, _ := json.Marshal(missile)
+					fmt.Println(string(str))
+				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
-		form_slice[1].SetBorder(true).SetTitle(" Missile ")
+		if border != true{
+			form_slice[1].SetBorder(true).SetTitle(" Missile ")
+		}
 
 		form_slice[2] = tview.NewForm().
 				AddTextArea("Name", "", 40, 1, 40, nil).
@@ -67,34 +77,33 @@ to quickly create a Cobra application.`,
 				AddButton("Save", nil).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
-		form_slice[2].SetBorder(true).SetTitle(" Indirect Fire ")
+		if border != true{
+			form_slice[2].SetBorder(true).SetTitle(" Indirect Fire ")
+		}
 
 
 		plus_quit := []string{"Quit"}
 		types := append(page_slice, plus_quit...)
+
+		selection_page := tview.NewModal().
+				SetText("Weapon Creation:\nSelect Weapon Type").
+				AddButtons(types).
+				SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					if buttonLabel == "Quit" {
+						app.Stop()
+					} else {
+						pages.SwitchToPage(buttonLabel)
+					}
+				})
+		if border != true{
+			selection_page.SetBorder(true)
+		}
 		pages.AddPage(fmt.Sprintf("Weapon Selection"),
-			tview.NewModal().
-			SetText("Weapon Creation:\nSelect Weapon Type").
-			AddButtons(types).
-			SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-				if buttonLabel == "Quit" {
-					app.Stop()
-				} else {
-					pages.SwitchToPage(buttonLabel)
-				}
-			}),
+			selection_page,
 			true, true) //resize bool, visible bool
 		for page := 0; page < len(page_slice); page++ {
 			pages.AddPage(fmt.Sprintf(page_slice[page]), form_slice[page], true, false)
 		}
-		// pages.AddPage(fmt.Sprintf("AntiTankWeapon"),
-		// 	form_slice[0],
-		// 	true, false)
-  //
-  //
-		// pages.AddPage(fmt.Sprintf("Missile"),
-		// 	form_slice[1],
-		// 	true, false)
 
 		if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
 			panic(err)
@@ -106,6 +115,8 @@ to quickly create a Cobra application.`,
 func init() {
 	weaponCmd.AddCommand(weaponCreateCmd)
 
+	weaponCreateCmd.Flags().BoolVarP(&border, "border", "b", false, "deactivate border on output")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -115,4 +126,28 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// weaponCreateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func make_missile (form *tview.Form, app *tview.Application) Missile {
+	wep_name := form.GetFormItemByLabel("Name").(*tview.TextArea).GetText()
+	rof := form.GetFormItemByLabel("Rate of Fire").(*tview.InputField).GetText()
+	wep_rof, _ := strconv.Atoi(rof)
+	pen := form.GetFormItemByLabel("Penetration").(*tview.InputField).GetText()
+	wep_pen, _ := strconv.Atoi(pen)
+	_, gen := form.GetFormItemByLabel("Generation").(*tview.DropDown).GetCurrentOption()
+	wep_gen, _ := strconv.Atoi(gen)
+	wep_top := form.GetFormItemByLabel("Top Attack").(*tview.Checkbox).IsChecked()
+	wep_limit := form.GetFormItemByLabel("Ammo Limited").(*tview.Checkbox).IsChecked()
+	_, wep_aspect := form.GetFormItemByLabel("Aspect").(*tview.DropDown).GetCurrentOption()
+	app.Stop()
+	built := Missile {
+		Name: wep_name,
+		Pen: int(wep_pen),
+		RateOfFire: int(wep_rof),
+		Generation: int(wep_gen),
+		TopAttack: wep_top,
+		AmmoLimited: wep_limit,
+		Aspect: wep_aspect,
+	}
+	return built
 }

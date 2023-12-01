@@ -53,8 +53,9 @@ to quickly create a Cobra application.`,
 				AddCheckbox("Ammo Limited", false, nil).
 				AddDropDown("Aspect", []string{"N/A", "Rear", "All"}, 0, nil).
 				AddButton("Save", func() {
-					missile := make_missile(form_slice[1], app)
+					missile := make_missile(form_slice[1])
 					str, _ := json.Marshal(missile)
+					app.Stop()
 					fmt.Println(string(str))
 				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
@@ -128,7 +129,7 @@ func init() {
 	// weaponCreateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func make_missile (form *tview.Form, app *tview.Application) Missile {
+func make_missile (form *tview.Form) Missile {
 	wep_name := form.GetFormItemByLabel("Name").(*tview.TextArea).GetText()
 	rof := form.GetFormItemByLabel("Rate of Fire").(*tview.InputField).GetText()
 	wep_rof, _ := strconv.Atoi(rof)
@@ -139,7 +140,6 @@ func make_missile (form *tview.Form, app *tview.Application) Missile {
 	wep_top := form.GetFormItemByLabel("Top Attack").(*tview.Checkbox).IsChecked()
 	wep_limit := form.GetFormItemByLabel("Ammo Limited").(*tview.Checkbox).IsChecked()
 	_, wep_aspect := form.GetFormItemByLabel("Aspect").(*tview.DropDown).GetCurrentOption()
-	app.Stop()
 	built := Missile {
 		Name: wep_name,
 		Pen: int(wep_pen),

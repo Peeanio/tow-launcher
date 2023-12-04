@@ -5,10 +5,12 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"database/sql"
 	"fmt"
 	"encoding/json"
 	"strconv"
-	//"log"
+	"log"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
@@ -62,6 +64,7 @@ to quickly create a Cobra application.`,
 					str, _ := json.Marshal(missile)
 					app.Stop()
 					fmt.Println(string(str))
+					save_missile(missile)
 				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
@@ -160,6 +163,19 @@ func make_missile (form *tview.Form) Missile {
 		Aspect: wep_aspect,
 	}
 	return built
+}
+
+func save_missile (newMissile Missile) {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	stmt, _ := db.Prepare("INSERT INTO missiles (Id, Name, Pen, RateOfFire, Generation, TopAttack, AmmoLimited, Aspect) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt.Exec(nil, newMissile.Name, newMissile.Pen, newMissile.RateOfFire, newMissile.Generation, newMissile.TopAttack, newMissile.AmmoLimited, newMissile.Aspect)
+	defer stmt.Close()
+
+	fmt.Printf("Added missile %v\n", newMissile.Name)
 }
 
 func make_antitank (form *tview.Form) AntiTankWeapon {

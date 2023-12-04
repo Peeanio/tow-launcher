@@ -39,6 +39,7 @@ type InfantryGun struct {
 }
 
 type AntiTankWeapon struct {
+	Name string
 	Pen int
 	HEAT bool
 	HighExpolsive bool

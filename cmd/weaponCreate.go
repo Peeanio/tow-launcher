@@ -37,7 +37,12 @@ to quickly create a Cobra application.`,
 				AddInputField("Rate of Fire", "", 3, nil, nil).
 				AddInputField("Range", "", 3, nil, nil).
 				AddCheckbox("Close Range", false, nil).
-				AddButton("Save", nil).
+				AddButton("Save", func() {
+					antitank := make_antitank(form_slice[0])
+					str, _ := json.Marshal(antitank)
+					app.Stop()
+					fmt.Println(string(str))
+				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
 		if border != true{
@@ -148,6 +153,37 @@ func make_missile (form *tview.Form) Missile {
 		TopAttack: wep_top,
 		AmmoLimited: wep_limit,
 		Aspect: wep_aspect,
+	}
+	return built
+}
+
+func make_antitank (form *tview.Form) AntiTankWeapon {
+	var wep_he bool
+	var wep_heat bool
+	wep_name := form.GetFormItemByLabel("Name").(*tview.TextArea).GetText()
+	rof := form.GetFormItemByLabel("Rate of Fire").(*tview.InputField).GetText()
+	wep_rof, _ := strconv.Atoi(rof)
+	pen := form.GetFormItemByLabel("Penetration").(*tview.InputField).GetText()
+	wep_pen, _ := strconv.Atoi(pen)
+	local_range := form.GetFormItemByLabel("Range").(*tview.InputField).GetText()
+	wep_range, _ := strconv.Atoi(local_range)
+	_, munition := form.GetFormItemByLabel("Munition Type").(*tview.DropDown).GetCurrentOption()
+	if munition == "HE" {
+		wep_he = true
+		wep_heat = false
+	} else {
+		wep_he = false
+		wep_heat = true
+	}
+	wep_close := form.GetFormItemByLabel("Close Range").(*tview.Checkbox).IsChecked()
+	built := AntiTankWeapon {
+		Name: wep_name,
+		Pen: wep_pen,
+		HEAT: wep_heat,
+		HighExpolsive: wep_he,
+		RateOfFire: wep_rof,
+		Range: wep_range,
+		Close: wep_close,
 	}
 	return built
 }

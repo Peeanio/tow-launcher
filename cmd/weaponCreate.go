@@ -80,7 +80,12 @@ to quickly create a Cobra application.`,
 				AddCheckbox("Laser-guided Munitions", false, nil).
 				AddCheckbox("GPS-guided Munitions", false, nil).
 				AddCheckbox("Artillery-delivered Mine Munitions", false, nil).
-				AddButton("Save", nil).
+				AddButton("Save", func() {
+					indirect := make_indirect(form_slice[2])
+					str, _ := json.Marshal(indirect)
+					app.Stop()
+					fmt.Println(string(str))
+				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
 		if border != true{
@@ -184,6 +189,51 @@ func make_antitank (form *tview.Form) AntiTankWeapon {
 		RateOfFire: wep_rof,
 		Range: wep_range,
 		Close: wep_close,
+	}
+	return built
+}
+
+func make_indirect (form *tview.Form) Indirect {
+	var wep_ammo []string
+	wep_name := form.GetFormItemByLabel("Name").(*tview.TextArea).GetText()
+	max := form.GetFormItemByLabel("Range Max").(*tview.InputField).GetText()
+	range_max, _ := strconv.Atoi(max)
+	min := form.GetFormItemByLabel("Range Min").(*tview.InputField).GetText()
+	range_min, _ := strconv.Atoi(min)
+	wep_h := form.GetFormItemByLabel("High Explosive Munitions").(*tview.Checkbox).IsChecked()
+	wep_s := form.GetFormItemByLabel("Smoke Munitions").(*tview.Checkbox).IsChecked()
+	wep_c := form.GetFormItemByLabel("Chemical Munitions").(*tview.Checkbox).IsChecked()
+	wep_i := form.GetFormItemByLabel("ICM Munitions").(*tview.Checkbox).IsChecked()
+	wep_l := form.GetFormItemByLabel("Laser-guided Munitions").(*tview.Checkbox).IsChecked()
+	wep_g := form.GetFormItemByLabel("GPS-guided Munitions").(*tview.Checkbox).IsChecked()
+	wep_m := form.GetFormItemByLabel("Artillery-delivered Mine Munitions").(*tview.Checkbox).IsChecked()
+
+	if wep_h == true {
+		wep_ammo = append(wep_ammo, "h")
+	}
+	if wep_s == true {
+		wep_ammo = append(wep_ammo, "s")
+	}
+	if wep_c == true {
+		wep_ammo = append(wep_ammo, "c")
+	}
+	if wep_i == true {
+		wep_ammo = append(wep_ammo, "i")
+	}
+	if wep_l == true {
+		wep_ammo = append(wep_ammo, "l")
+	}
+	if wep_g == true {
+		wep_ammo = append(wep_ammo, "g")
+	}
+	if wep_m == true {
+		wep_ammo = append(wep_ammo, "m")
+	}
+	built := Indirect {
+		Name: wep_name,
+		RangeMin: range_min,
+		RangeMax: range_max,
+		Ammo: wep_ammo,
 	}
 	return built
 }

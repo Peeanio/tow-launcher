@@ -5,11 +5,11 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
+	 "fmt"
 	"log"
 	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
-	// "github.com/rivo/tview"
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
 
@@ -24,76 +24,38 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// app := tview.NewApplication()
-		// weapons := tview.NewTreeNode("weapons").
-		// 		SetColor(tcell.ColorRed)
-		// tree := tview.NewTreeView().
-		// 	SetRoot(weapons).
-		// 	SetCurrentNode(weapons)
-  //
-		// // A helper function which adds the files and directories of the given path
-		// // to the given target node.
-		// add := func(target *tview.TreeNode, path string) {
-		// 	files, err := ioutil.ReadDir(path)
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-		// 	for _, file := range files {
-		// 		node := tview.NewTreeNode(file.Name()).
-		// 			SetReference(filepath.Join(path, file.Name())).
-		// 			SetSelectable(file.IsDir())
-		// 		if file.IsDir() {
-		// 			node.SetColor(tcell.ColorGreen)
-		// 		}
-		// 		target.AddChild(node)
-		// 	}
-		// }
-  //
-		// // Add the current directory to the root node.
-		// add(weapons, "weapons")
-  //
-		// // If a directory was selected, open it.
-		// tree.SetSelectedFunc(func(node *tview.TreeNode) {
-		// 	reference := node.GetReference()
-		// 	if reference == nil {
-		// 		return // Selecting the root node does nothing.
-		// 	}
-		// 	children := node.GetChildren()
-		// 	if len(children) == 0 {
-		// 		// Load and show files in this directory.
-		// 		path := reference.(string)
-		// 		add(node, path)
-		// 	} else {
-		// 		// Collapse if visible, expand if collapsed.
-		// 		node.SetExpanded(!node.IsExpanded())
-		// 	}
-		// })
-  //
-		// if err := tview.NewApplication().SetRoot(tree, true).Run(); err != nil {
-		// 	panic(err)
-		// }
-		db, err := sql.Open("sqlite3", "./tow.db")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer db.Close()
-		response, err := db.Query("SELECT * from missiles")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer response.Close()
-		weapons := make([]Missile, 0)
+		app := tview.NewApplication()
+		weapons := tview.NewTreeNode("weapons")
+		tree := tview.NewTreeView().
+			SetRoot(weapons).
+			SetCurrentNode(weapons)
+		missilesNode := tview.NewTreeNode("missiles").
+				SetExpanded(false).
+				SetSelectable(true)
+		weapons.AddChild(missilesNode)
 
-		for response.Next() {
-			ourMissile := Missile{}
-			err = response.Scan(&ourMissile.Id, &ourMissile.Name, &ourMissile.Pen, &ourMissile.RateOfFire, &ourMissile.Generation, &ourMissile.TopAttack, &ourMissile.AmmoLimited, &ourMissile.Aspect)
-			if err != nil {
-				log.Fatal(err)
+		missiles := get_missiles()
+		for i := 0; i < len(missiles); i ++ {
+			new_node := tview.NewTreeNode(missiles[i].Name).
+					SetReference(missiles[i])
+			missilesNode.AddChild(new_node.Collapse())
+		}
+
+		tree.SetSelectedFunc(func(node *tview.TreeNode) {
+			children := node.GetChildren()
+			reference := node.GetReference()
+			if children != nil {
+				node.Expand()
+			} else if reference != nil {
+				app.Stop()
+				fmt.Println(reference)
 			}
+		})
 
-		weapons = append(weapons, ourMissile)
-	}
-		fmt.Println(weapons[0].Name)
+		if err := app.SetRoot(tree, true).Run(); err != nil {
+			panic(err)
+		}
+		// fmt.Println(missiles[0].Name)
 	},
 }
 
@@ -109,4 +71,29 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// weaponListCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func get_missiles () []Missile {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	response, err := db.Query("SELECT * from missiles")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Close()
+	weapons := make([]Missile, 0)
+
+	for response.Next() {
+		ourMissile := Missile{}
+		err = response.Scan(&ourMissile.Id, &ourMissile.Name, &ourMissile.Pen, &ourMissile.RateOfFire, &ourMissile.Generation, &ourMissile.TopAttack, &ourMissile.AmmoLimited, &ourMissile.Aspect)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		weapons = append(weapons, ourMissile)
+	}
+		return weapons
 }

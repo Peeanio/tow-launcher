@@ -16,6 +16,7 @@ type GunWeapon struct {
 }
 
 type Missile struct {
+	Id int
 	Name string
 	Pen int
 	RateOfFire int

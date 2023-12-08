@@ -15,7 +15,7 @@ import (
 
 // weaponListCmd represents the weaponList command
 var weaponListCmd = &cobra.Command{
-	Use:   "weaponList",
+	Use:   "list",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -25,11 +25,11 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		app := tview.NewApplication()
-		weapons := tview.NewTreeNode("weapons")
+		weapons := tview.NewTreeNode("Weapons")
 		tree := tview.NewTreeView().
 			SetRoot(weapons).
 			SetCurrentNode(weapons)
-		missilesNode := tview.NewTreeNode("missiles").
+		missilesNode := tview.NewTreeNode("Missiles").
 				SetExpanded(false).
 				SetSelectable(true)
 		weapons.AddChild(missilesNode)
@@ -41,18 +41,30 @@ to quickly create a Cobra application.`,
 			missilesNode.AddChild(new_node.Collapse())
 		}
 
+		selectedView := tview.NewTextView()
+
+		flex := tview.NewFlex().
+			AddItem(tree, 0, 1, true).
+			AddItem(selectedView, 0, 1, false)
 		tree.SetSelectedFunc(func(node *tview.TreeNode) {
 			children := node.GetChildren()
 			reference := node.GetReference()
-			if children != nil {
+			expanded := node.IsExpanded()
+			if children != nil && expanded != true {
 				node.Expand()
+			} else if children != nil && expanded == true {
+				node.Collapse()
+				selectedView.Clear()
 			} else if reference != nil {
-				app.Stop()
-				fmt.Println(reference)
+				// app.Stop()
+				// fmt.Println(reference)
+				text := fmt.Sprint(reference)
+				selectedView.SetText(text)
+
 			}
 		})
 
-		if err := app.SetRoot(tree, true).Run(); err != nil {
+		if err := app.SetRoot(flex, true).Run(); err != nil {
 			panic(err)
 		}
 		// fmt.Println(missiles[0].Name)

@@ -5,7 +5,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	 "fmt"
+	"encoding/json"
 	"log"
 	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
@@ -58,8 +58,8 @@ to quickly create a Cobra application.`,
 			} else if reference != nil {
 				// app.Stop()
 				// fmt.Println(reference)
-				text := fmt.Sprint(reference)
-				selectedView.SetText(text)
+				text, _ := json.Marshal(reference)
+				selectedView.SetText(string(text))
 
 			}
 		})

@@ -27,10 +27,11 @@ type Missile struct {
 }
 
 type Indirect struct {
+	Id int
 	Name string
 	RangeMin int
 	RangeMax int
-	Ammo []string
+	Ammo string
 }
 
 type InfantryGun struct {

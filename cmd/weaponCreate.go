@@ -88,6 +88,7 @@ to quickly create a Cobra application.`,
 					str, _ := json.Marshal(indirect)
 					app.Stop()
 					fmt.Println(string(str))
+					save_indirect(indirect)
 				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
@@ -178,6 +179,19 @@ func save_missile (newMissile Missile) {
 	fmt.Printf("Added missile %v\n", newMissile.Name)
 }
 
+func save_indirect (newIndirect Indirect) {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	stmt, _ := db.Prepare("INSERT INTO indirects (Id, Name, RangeMax, RangeMin, Ammo) VALUES (?, ?, ?, ?, ?)")
+	stmt.Exec(nil, newIndirect.Name, newIndirect.RangeMax, newIndirect.RangeMin, newIndirect.Ammo)
+	defer stmt.Close()
+
+	fmt.Printf("Added indirect %v\n", newIndirect.Name)
+}
+
 func make_antitank (form *tview.Form) AntiTankWeapon {
 	var wep_he bool
 	var wep_heat bool
@@ -210,7 +224,7 @@ func make_antitank (form *tview.Form) AntiTankWeapon {
 }
 
 func make_indirect (form *tview.Form) Indirect {
-	var wep_ammo []string
+	var wep_ammo string
 	wep_name := form.GetFormItemByLabel("Name").(*tview.TextArea).GetText()
 	max := form.GetFormItemByLabel("Range Max").(*tview.InputField).GetText()
 	range_max, _ := strconv.Atoi(max)
@@ -225,25 +239,25 @@ func make_indirect (form *tview.Form) Indirect {
 	wep_m := form.GetFormItemByLabel("Artillery-delivered Mine Munitions").(*tview.Checkbox).IsChecked()
 
 	if wep_h == true {
-		wep_ammo = append(wep_ammo, "h")
+		wep_ammo = wep_ammo + "h"
 	}
 	if wep_s == true {
-		wep_ammo = append(wep_ammo, "s")
+		wep_ammo = wep_ammo + "s"
 	}
 	if wep_c == true {
-		wep_ammo = append(wep_ammo, "c")
+		wep_ammo = wep_ammo +"c"
 	}
 	if wep_i == true {
-		wep_ammo = append(wep_ammo, "i")
+		wep_ammo = wep_ammo +"i"
 	}
 	if wep_l == true {
-		wep_ammo = append(wep_ammo, "l")
+		wep_ammo = wep_ammo +"l"
 	}
 	if wep_g == true {
-		wep_ammo = append(wep_ammo, "g")
+		wep_ammo = wep_ammo + "g"
 	}
 	if wep_m == true {
-		wep_ammo = append(wep_ammo, "m")
+		wep_ammo = wep_ammo + "m"
 	}
 	built := Indirect {
 		Name: wep_name,

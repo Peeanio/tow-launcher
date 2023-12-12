@@ -7,6 +7,7 @@ package cmd
 import (
 	"encoding/json"
 	"log"
+	// "strings"
 	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
 	"github.com/rivo/tview"
@@ -32,15 +33,23 @@ to quickly create a Cobra application.`,
 		missilesNode := tview.NewTreeNode("Missiles").
 				SetExpanded(false).
 				SetSelectable(true)
-		weapons.AddChild(missilesNode)
+		indirectsNode := tview.NewTreeNode("Indirects").
+				SetExpanded(false).
+				SetSelectable(true)
+		weapons.AddChild(missilesNode).AddChild(indirectsNode)
 
 		missiles := get_missiles()
+		indirects := get_indirects()
 		for i := 0; i < len(missiles); i ++ {
 			new_node := tview.NewTreeNode(missiles[i].Name).
 					SetReference(missiles[i])
 			missilesNode.AddChild(new_node.Collapse())
 		}
-
+		for i := 0; i < len(indirects); i ++ {
+			new_node := tview.NewTreeNode(indirects[i].Name).
+					SetReference(indirects[i])
+			indirectsNode.AddChild(new_node.Collapse())
+		}
 		selectedView := tview.NewTextView()
 
 		flex := tview.NewFlex().
@@ -106,6 +115,32 @@ func get_missiles () []Missile {
 		}
 
 		weapons = append(weapons, ourMissile)
+	}
+		return weapons
+}
+
+func get_indirects () []Indirect {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	response, err := db.Query("SELECT * from indirects")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Close()
+	weapons := make([]Indirect, 0)
+
+	for response.Next() {
+		ourIndirect := Indirect{}
+		// local_ammo := &ourIndirect.Ammo
+		err = response.Scan(&ourIndirect.Id, &ourIndirect.Name, &ourIndirect.RangeMax, &ourIndirect.RangeMin, &ourIndirect.Ammo)//strings.Split(local_ammo, ""))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		weapons = append(weapons, ourIndirect)
 	}
 		return weapons
 }

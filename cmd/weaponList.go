@@ -36,10 +36,14 @@ to quickly create a Cobra application.`,
 		indirectsNode := tview.NewTreeNode("Indirects").
 				SetExpanded(false).
 				SetSelectable(true)
-		weapons.AddChild(missilesNode).AddChild(indirectsNode)
+		antiTanksNode := tview.NewTreeNode("Anti-Tank Weapons").
+				SetExpanded(false).
+				SetSelectable(true)
+		weapons.AddChild(missilesNode).AddChild(indirectsNode).AddChild(antiTanksNode)
 
 		missiles := get_missiles()
 		indirects := get_indirects()
+		antitankweapons := get_antitanks()
 		for i := 0; i < len(missiles); i ++ {
 			new_node := tview.NewTreeNode(missiles[i].Name).
 					SetReference(missiles[i])
@@ -49,6 +53,11 @@ to quickly create a Cobra application.`,
 			new_node := tview.NewTreeNode(indirects[i].Name).
 					SetReference(indirects[i])
 			indirectsNode.AddChild(new_node.Collapse())
+		}
+		for i := 0; i < len(antitankweapons); i ++ {
+			new_node := tview.NewTreeNode(antitankweapons[i].Name).
+					SetReference(antitankweapons[i])
+			antiTanksNode.AddChild(new_node.Collapse())
 		}
 		selectedView := tview.NewTextView()
 
@@ -141,6 +150,32 @@ func get_indirects () []Indirect {
 		}
 
 		weapons = append(weapons, ourIndirect)
+	}
+		return weapons
+}
+
+func get_antitanks () []AntiTankWeapon {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	response, err := db.Query("SELECT * from antitankweapons")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Close()
+	weapons := make([]AntiTankWeapon, 0)
+
+	for response.Next() {
+		ourAntiTankWeapon := AntiTankWeapon{}
+		// local_ammo := &ourIndirect.Ammo
+		err = response.Scan(&ourAntiTankWeapon.Id, &ourAntiTankWeapon.Name, &ourAntiTankWeapon.Pen, &ourAntiTankWeapon.HEAT, &ourAntiTankWeapon.HighExplosive, &ourAntiTankWeapon.RateOfFire, &ourAntiTankWeapon.Range, &ourAntiTankWeapon.Close)//strings.Split(local_ammo, ""))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		weapons = append(weapons, ourAntiTankWeapon)
 	}
 		return weapons
 }

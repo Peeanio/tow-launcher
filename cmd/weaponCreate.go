@@ -44,6 +44,7 @@ to quickly create a Cobra application.`,
 					str, _ := json.Marshal(antitank)
 					app.Stop()
 					fmt.Println(string(str))
+					save_antitank(antitank)
 				}).
 				AddButton("Back", func() {pages.SwitchToPage("Weapon Selection")}).
 				AddButton("Quit", func() {app.Stop()})
@@ -192,6 +193,19 @@ func save_indirect (newIndirect Indirect) {
 	fmt.Printf("Added indirect %v\n", newIndirect.Name)
 }
 
+func save_antitank (newAntiTank AntiTankWeapon) {
+	db, err := sql.Open("sqlite3", "./tow.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	stmt, _ := db.Prepare("INSERT INTO antitankweapons (Id, Name, Pen, HEAT, HighExplosive, RateOfFire, Range, Close) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt.Exec(nil, newAntiTank.Name, newAntiTank.Pen, newAntiTank.HEAT, newAntiTank.HighExplosive, newAntiTank.RateOfFire, newAntiTank.Range, newAntiTank.Close)
+	defer stmt.Close()
+
+	fmt.Printf("Added antitank %v\n", newAntiTank.Name)
+}
+
 func make_antitank (form *tview.Form) AntiTankWeapon {
 	var wep_he bool
 	var wep_heat bool
@@ -215,7 +229,7 @@ func make_antitank (form *tview.Form) AntiTankWeapon {
 		Name: wep_name,
 		Pen: wep_pen,
 		HEAT: wep_heat,
-		HighExpolsive: wep_he,
+		HighExplosive: wep_he,
 		RateOfFire: wep_rof,
 		Range: wep_range,
 		Close: wep_close,

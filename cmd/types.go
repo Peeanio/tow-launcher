@@ -8,6 +8,8 @@ type VehicleArmor struct {
 }
 
 type GunWeapon struct {
+	Id int
+	Name string
 	Pen int
 	AmmoType string // heat or he explict, kinetic is inferenced from lack of tag
 	Range int
@@ -42,10 +44,11 @@ type InfantryGun struct {
 }
 
 type AntiTankWeapon struct {
+	Id int
 	Name string
 	Pen int
 	HEAT bool
-	HighExpolsive bool
+	HighExplosive bool
 	RateOfFire int
 	Range int
 	Close bool //true for close only, false for ranged value
